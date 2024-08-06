@@ -5,6 +5,9 @@ let bg_completed = false;
 let buildings = []; 
 let buildings_coords = [];
 
+let landmarks = 0; 
+let signalSpeed = 1; 
+
 let sub; 
 let control; 
 let right = true; 
@@ -25,17 +28,18 @@ function preload(){
 function setup(){
     let cnv = createCanvas(1200, 650); 
     cnv.parent("canvas-parent");
-    // colorMode(HSL); 
+    colorMode(HSL); 
 
-    let bg_builds_incr = round(random(90, 100)); 
+    let bg_builds_incr = round(random(45, 75)); 
     for(let i = 0; i < 3600; i += bg_builds_incr){ // 3600 = Max Width of Map Area Dimension
         let widths = round(random(70, 90)); 
         let heights = round(random(150, 300)); 
         let newbd = new Building(i, widths, heights, 50, 100); 
         newbd.build(); 
         bg_buildings.push(newbd); 
-        bg_builds_incr = round(random(90, 100)); 
+        bg_builds_incr = round(random(45, 75)); 
     }
+
     bg_completed = true; 
 
     for(let i = 0; i < 3600; i += bg_builds_incr){
@@ -49,15 +53,14 @@ function setup(){
 
     control = new Sub(50, 250); 
     
-
 }
 
 function draw(){
 
-    if(numScans < 5){
+    if(numScans < landmarks){
         background(255); 
     } else{
-        background(40, 55, 87);
+        background(208, 50, 50);
     }
     
     fill(0); 
@@ -112,6 +115,7 @@ function draw(){
                 buildings[i].x += 5; 
                 buildings[i].update(buildings_coords[i]);
             }
+
         } else {
             control.x -= speed; 
             if(speed < 5){
@@ -149,16 +153,40 @@ function draw(){
     //     image(bg_buildings[i], )
     // }
 
-    if(numScans >= 5){
+    push();
+    fill(255); 
+    translate(0, height-200); 
+    rotate(radians(30)); 
+    noStroke(); 
+    rect(0, 0, 450, 300); 
+    rotate(radians(-15)); 
+    rect(225, 40, 550, 300); 
+    rotate(radians(-30)); 
+    rect(450, 275, 550, 300); 
+    rotate(radians(45)); 
+    rect(950, -450, 550, 300); 
+    pop(); 
+
+    if(numScans > 4){
         for(let i = 0; i < buildings.length; ++i){
+            buildings[i].landMarked = true; 
             buildings[i].scanning(i); 
+            buildings[i].landMarked = false; 
         }
+        push(); 
+        colorMode(RGB); 
         fill(numb, lvl); 
         rect(0, 0, 3600, height);
         if(lvl > 0){
             lvl -= 5; 
         }
+        pop(); 
     }
+
+    // push(); 
+    // strokeWeight(0.4); 
+    // arc(50, 90, 40, 10, PI, TWO_PI);
+    // pop(); 
     
 }
 
@@ -176,6 +204,7 @@ class Building{
         this.dec = decay; 
         this.color = color; 
         this.scanned = false; 
+        this.landMarked = false; 
     }
 
     decay(){
@@ -186,7 +215,7 @@ class Building{
 
     checkIfPressed(){
         push(); 
-        if(mouseX > this.x && mouseX < (this.x + this.wid)){
+        if(mouseX > this.x && mouseX < (this.x + this.wid) && mouseY > this.y && mouseY < (this.y + this.hei)){
             scanSuccess = true; 
         }
         pop(); 
@@ -196,15 +225,16 @@ class Building{
         // let timeStart = frameCount; 
         // let timeEnd = frameCount + 5000; 
         this.checkIfPressed(); 
-        if(numScans >= 5){
+        if(numScans >= landmarks){
             scanSuccess = true; 
         }
-        if(scanSuccess && this.scanned == false){
+        if(scanSuccess && this.scanned == false && this.landMarked){
             // for(let i = timeStart; i < timeEnd; i += 0.5){
             //     fill(0); 
             //     rect(50, 50, 50, 50); 
             // }
             // scan(this.x, this.y, this.wid, this.hei);
+
             let bd = buildings_coords[pos]; 
             let chance = round(random(0, 2)); 
             if(chance == 0){
@@ -216,7 +246,10 @@ class Building{
             }
 
             this.scanned = true; 
-            numScans += 1; 
+            if(this.landMarked){
+                numScans += 1; 
+            }
+            
             if(this.wid <= 80){
                 let windx = this.wid / 2; 
                 bd.fill(72, 133, 108); 
@@ -280,40 +313,62 @@ class Building{
         let bd = createGraphics(this.wid, this.hei); 
 
         bd.background(this.color); 
+        
 
-        if(this.wid <= 80){
-            let windx = this.wid / 2; 
-            bd.fill(255); 
-            bd.noStroke(); 
-            for(let i = this.y - 400; i < this.hei; i += 60){
-                bd.rect(windx - 25, i, 20, 30);
-                bd.rect(windx + 10, i, 20, 30);    
+
+
+        // for(let i = 0; i < bd.pixels.length; i++){
+        //     push(); 
+        //     colorMode(RGB); 
+        //     bd.pixels[i] = 0; 
+        //     pop(); 
+        // }
+        if(this.color == 0){
+
+            let markedChance = round(random(0, 100)); 
+            if(markedChance <= 20){
+                this.landMarked = true; 
+                landmarks += 1; 
             }
-        } else {
-            let windx = this.wid / 3; 
-            bd.fill(255); 
-            bd.noStroke(); 
-            for(let i = this.y - 400; i < this.hei; i += 60){
-                bd.rect(windx - 20, i, 15, 25);
-                bd.rect(windx + 7, i, 15, 25);
-                bd.rect(windx + 35, i, 15, 25);
+
+            if(this.wid <= 80){
+                let windx = this.wid / 2; 
+                bd.fill(255); 
+                bd.noStroke(); 
+                for(let i = this.y - 400; i < this.hei; i += 60){
+                    bd.rect(windx - 25, i, 20, 30);
+                    bd.rect(windx + 10, i, 20, 30);    
+                }
+            } else {
+                let windx = this.wid / 3; 
+                bd.fill(255); 
+                bd.noStroke(); 
+                for(let i = this.y - 400; i < this.hei; i += 60){
+                    bd.rect(windx - 20, i, 15, 25);
+                    bd.rect(windx + 7, i, 15, 25);
+                    bd.rect(windx + 35, i, 15, 25);
+                }
             }
         }
-
-
         
+
         if(!bg_completed){
             bg_buildings_coords.push(bd);
         } else {
-            print(bd.pixels.length); 
             buildings_coords.push(bd); 
         }
                  
-
     }
 
     update(bd){
         image(bd, this.x, this.y); // 400 is ground level calculations
+        if(this.landMarked){
+            push(); 
+            strokeWeight(0.4); 
+            fill(199, 126, 24);
+            arc(this.x + 50, this.y, 40, 10, PI, TWO_PI);
+            pop();
+        }
     }
 
 
