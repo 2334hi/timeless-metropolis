@@ -5,7 +5,7 @@ function preload(){
 }
 
 function setup(){
-    let cnv = createCanvas(windowWidth, windowHeight); 
+    let cnv = createCanvas(1000, 550); 
     cnv.parent("canvas-parent");
     
 
@@ -13,8 +13,10 @@ function setup(){
 
 function draw(){
     background(255); 
-    scale(1.5); 
+    
     image(map, -25, 0);
+    //let a = createA("./New_York/NewYork.js", "*NYC");
+    //a.position(235, 275); 
     
     
 }

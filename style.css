@@ -1,3 +1,29 @@
 body{
+    background-color: blanchedalmond;
+}
+
+#main{
     background-color: white;
+    width: 900px;
+    margin: auto;
+}
+
+h1{
+    background-color: beige;
+    text-align: center;
+}
+
+h3{
+    text-align: center;
+}
+
+
+
+#canvas-parent{
+    text-align: center;
+}
+
+p{
+    margin-top: 20px;
+    text-align: center; 
 }

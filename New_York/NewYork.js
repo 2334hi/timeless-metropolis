@@ -4,25 +4,43 @@ let bg_completed = false;
 
 let buildings = []; 
 let buildings_coords = [];
+let startingDecay = 100; 
 
 let landmarks = 0; 
 let signalSpeed = 1; 
 
+let startSceneHeight = 20; 
+let startScene = true; 
+
 let sub; 
+let bub; 
+let bubbleSpeed = 5; 
 let control; 
 let right = true; 
 let left = false; 
 let speed = 2; 
+let amb; 
+let eng; 
+let son; 
+let lib; 
+let playingEng = false; 
+let playingAmb = false; 
 
 let scanSuccess = false; 
 let numScans = 0; 
 let numb = 255; 
 let lvl = 500; 
-
-let quick; 
+let ping = 40; 
+let pingup = true; 
+let pingdown = false; 
 
 function preload(){
     sub = loadImage("./assets/sub.png"); 
+    bub = loadImage("./assets/bubbles.png");
+    amb = loadSound("./assets/amb.mp3");
+    eng = loadSound("./assets/engine.mp3"); 
+    son = loadSound("./assets/sonar.mp3");
+    lib = loadImage("./assets/lib.png"); 
 }
 
 function setup(){
@@ -34,7 +52,7 @@ function setup(){
     for(let i = 0; i < 3600; i += bg_builds_incr){ // 3600 = Max Width of Map Area Dimension
         let widths = round(random(70, 90)); 
         let heights = round(random(150, 300)); 
-        let newbd = new Building(i, widths, heights, 50, 100); 
+        let newbd = new Building(i, widths, heights, 100, 100); 
         newbd.build(); 
         bg_buildings.push(newbd); 
         bg_builds_incr = round(random(45, 75)); 
@@ -45,22 +63,28 @@ function setup(){
     for(let i = 0; i < 3600; i += bg_builds_incr){
         let widths = round(random(70, 90)); 
         let heights = round(random(150, 300));
-        let newbd = new Building(i, widths, heights, 50, 0); 
+        let newbd = new Building(i, widths, heights, startingDecay, 0); 
+        if(startingDecay > 5){
+            startingDecay -= 3; 
+        }
         newbd.build(); 
         buildings.push(newbd); 
         bg_builds_incr = round(random(90, 100));
     }
 
-    control = new Sub(50, 250); 
+    control = new Sub(50, 20); 
     
 }
 
 function draw(){
 
     if(numScans < landmarks){
-        background(255); 
+        background(215, 38, 50); 
+        
     } else{
         background(208, 50, 50);
+        image(lib, 250, -175); 
+        
     }
     
     fill(0); 
@@ -75,63 +99,93 @@ function draw(){
     }
 
     if(keyIsDown(68)){
-        
+        if(!playingEng){
+            eng.play(); 
+            playingEng = true; 
+        }
         right = true; 
         left = false; 
-        if(control.x >= (width - 200) || numScans >= 5){
-            for(let i = 0; i < bg_buildings.length; ++i){
-                
-                bg_buildings[i].x -= 5; 
-                
-                bg_buildings[i].update(bg_buildings_coords[i]); 
-                
+        if((control.x >= (width - 200) || numScans >= 5)){
+
+            if(buildings[buildings.length - 1].x > control.x){
+                for(let i = 0; i < bg_buildings.length; ++i){
+        
+                    bg_buildings[i].x -= 5; 
+                    
+                    bg_buildings[i].update(bg_buildings_coords[i]); 
+                    
+                    
+                }
+    
+                for(let i = 0; i < buildings.length; ++i){
+                    buildings[i].x -= 5; 
+                    buildings[i].update(buildings_coords[i]);
+                }
             }
 
-            for(let i = 0; i < buildings.length; ++i){
-                buildings[i].x -= 5; 
-                buildings[i].update(buildings_coords[i]);
-            }
         } else {
-            control.x += speed; 
-            if(speed < 5){
-                speed *= 1.01; 
+            if(control.x < 1200){
+                control.x += speed; 
+                if(speed < 5){
+                    speed *= 1.01; 
+                }
             }
+            
         }
         
     }
 
     if(keyIsDown(65)){
-
+        if(!playingEng){
+            eng.play(); 
+            playingEng = true; 
+        }
+        
         right = false; 
         left = true; 
-        if(control.x <= (0 + 50) || numScans >= 5){
-            for(let i = 0; i < bg_buildings.length; ++i){
-                bg_buildings[i].x += 5;
-                
-                bg_buildings[i].update(bg_buildings_coords[i]); 
+        if((control.x < (0 + 200) || numScans >= 5)){
+
+            if(buildings[0].x < control.x){
+                for(let i = 0; i < bg_buildings.length; ++i){
+                    bg_buildings[i].x += 5;
+                    
+                    bg_buildings[i].update(bg_buildings_coords[i]); 
+                }
+    
+                for(let i = 0; i < buildings.length; ++i){
+                    buildings[i].x += 5; 
+                    buildings[i].update(buildings_coords[i]);
+                }
             }
 
-            for(let i = 0; i < buildings.length; ++i){
-                buildings[i].x += 5; 
-                buildings[i].update(buildings_coords[i]);
+        } else{
+            if(control.x > 0){
+                control.x -= speed; 
+                if(speed < 5){
+                    speed *= 1.01; 
+                }
             }
-
-        } else {
-            control.x -= speed; 
-            if(speed < 5){
-                speed *= 1.01; 
-            }
+            
+            
         }
         
     }
 
     if(keyIsDown(87)){
+        if(!playingEng){
+            eng.play(); 
+            playingEng = true; 
+        }
         if(control.y >= 10){
             control.y -= 1; 
         }
     }
 
     if(keyIsDown(83)){
+        if(!playingEng){
+            eng.play(); 
+            playingEng = true; 
+        } 
         if(control.y <= (height - 75)){
             control.y += 1; 
         }
@@ -140,18 +194,6 @@ function draw(){
     if(numScans < 5){
         control.update(); 
     }
-    
-
-    // pg = createGraphics(50, 300); // Deterimining the width and height with createGraphics
-    // pg.background(100); 
-    // image(pg, 100, 100); // Positioning it with image
-    // image(pg, 165, 150); 
-
-    // quick = new Building(165, 50, 250, 50); 
-    // quick.build(); 
-    // for(let i = 0; i < bg_buildings.length; ++i){
-    //     image(bg_buildings[i], )
-    // }
 
     push();
     fill(255); 
@@ -167,12 +209,14 @@ function draw(){
     rect(950, -450, 550, 300); 
     pop(); 
 
-    if(numScans > 4){
+    if(numScans >= 5){
         for(let i = 0; i < buildings.length; ++i){
             buildings[i].landMarked = true; 
             buildings[i].scanning(i); 
             buildings[i].landMarked = false; 
         }
+
+        // Screen Flash revealing the ancient city
         push(); 
         colorMode(RGB); 
         fill(numb, lvl); 
@@ -180,19 +224,10 @@ function draw(){
         if(lvl > 0){
             lvl -= 5; 
         }
+        amb.stop(); 
         pop(); 
     }
-
-    // push(); 
-    // strokeWeight(0.4); 
-    // arc(50, 90, 40, 10, PI, TWO_PI);
-    // pop(); 
     
-}
-
-function scan(x, y, wid, hei){
-    fill(0, 0, 235, 127); 
-    rect(x, y, wid, hei); 
 }
 
 class Building{
@@ -205,11 +240,52 @@ class Building{
         this.color = color; 
         this.scanned = false; 
         this.landMarked = false; 
+
+        this.bd = createGraphics(this.wid, this.hei);
     }
 
     decay(){
+        
+        let orgDecay = this.dec; 
+        let decFactor = 0; 
+        this.bd.erase(); 
+        this.bd.noStroke(); 
 
+        for(let i = 0; i < this.y; i += round(this.dec * 0.3)){
 
+            this.dec = orgDecay; 
+            decFactor += 1;
+            this.dec += decFactor; 
+            //let rotVar = 45; 
+            push(); 
+            
+            for(let k = 0; k < this.wid; k += round(this.dec * 0.3)){
+                //push(); 
+                translate(i, k); 
+                //rotate(radians(rotVar));
+                if(this.dec > 30){
+                    rotate(radians(round(random(0, 45))));
+                }
+                //
+                if(this.dec > 70){
+                    if(round(random(0, 1)) == 0){
+                        this.bd.rect(i + 5, k - round(random(5, this.hei - 400)), round(random(5, 25)), round(random(5, 25)));
+                    } else {
+                        this.bd.ellipse(i + 5, k - round(random(5, this.hei - 400)), round(random(5, 25)), round(random(5, 25)));
+                    }
+                     
+                    
+                } else {
+                    //this.bd.rect(i, k - round(random(5, 35)), 25, 10);
+                    this.bd.rect(i, k - round(random(5, this.hei - 400)), round(random(5, 15)), round(random(5, 15)));
+                }
+                
+            }
+            pop(); 
+
+        }
+
+        this.bd.noErase(); 
 
     }
 
@@ -217,32 +293,31 @@ class Building{
         push(); 
         if(mouseX > this.x && mouseX < (this.x + this.wid) && mouseY > this.y && mouseY < (this.y + this.hei)){
             scanSuccess = true; 
+            if(this.landMarked){
+                son.play(); 
+            }
+            
         }
         pop(); 
     }
 
-    scanning(pos){
-        // let timeStart = frameCount; 
-        // let timeEnd = frameCount + 5000; 
-        this.checkIfPressed(); 
-        if(numScans >= landmarks){
-            scanSuccess = true; 
-        }
-        if(scanSuccess && this.scanned == false && this.landMarked){
-            // for(let i = timeStart; i < timeEnd; i += 0.5){
-            //     fill(0); 
-            //     rect(50, 50, 50, 50); 
-            // }
-            // scan(this.x, this.y, this.wid, this.hei);
+    scanning(){
 
-            let bd = buildings_coords[pos]; 
+        if(numScans >= 5){
+            scanSuccess = true; 
+        } else{
+            this.checkIfPressed(); 
+        }
+
+        if(scanSuccess && this.scanned == false && this.landMarked){
+            
             let chance = round(random(0, 2)); 
             if(chance == 0){
-                bd.background(56, 12, 3); 
+                this.bd.background(56, 12, 3); 
             } else if(chance == 1){
-                bd.background(84, 61, 57);
+                this.bd.background(84, 61, 57);
             } else {
-                bd.background(161, 102, 92); 
+                this.bd.background(161, 102, 92); 
             }
 
             this.scanned = true; 
@@ -252,77 +327,42 @@ class Building{
             
             if(this.wid <= 80){
                 let windx = this.wid / 2; 
-                bd.fill(72, 133, 108); 
-                bd.noStroke(); 
+                this.bd.fill(72, 133, 108); 
+                this.bd.noStroke(); 
                 for(let i = this.y - 400; i < this.hei; i += 60){
                     if(chance == 2 || chance == 1){
-                        bd.fill(149, 163, 42); 
+                        this.bd.fill(149, 163, 42); 
                     }
-                    bd.rect(windx - 25, i, 20, 30);
-                    bd.rect(windx + 10, i, 20, 30);    
+                    this.bd.rect(windx - 25, i, 20, 30);
+                    this.bd.rect(windx + 10, i, 20, 30);    
                 }
             } else {
                 let windx = this.wid / 3; 
-                bd.fill(72, 133, 108); 
-                bd.noStroke(); 
+                this.bd.fill(72, 133, 108); 
+                this.bd.noStroke(); 
                 for(let i = this.y - 400; i < this.hei; i += 60){
                     if(chance == 2 || chance == 1){
-                        bd.fill(149, 163, 42); 
+                        this.bd.fill(149, 163, 42); 
                     }
-                    bd.rect(windx - 20, i, 15, 25);
-                    bd.rect(windx + 7, i, 15, 25);
-                    bd.rect(windx + 35, i, 15, 25);
+                    this.bd.rect(windx - 20, i, 15, 25);
+                    this.bd.rect(windx + 7, i, 15, 25);
+                    this.bd.rect(windx + 35, i, 15, 25);
                 }
             }
-            // this.scanned(pos); 
 
-              
         }
 
         scanSuccess = false; 
 
     }
 
-    // scanned(pos){
-    //     let bd = buildings_coords[pos];
-
-    //     bd.background(0, 0, this.color); 
-
-    //     if(this.wid <= 80){
-    //         let windx = this.wid / 2; 
-    //         bd.fill(255); 
-    //         bd.noStroke(); 
-    //         for(let i = this.y - 400; i < this.hei; i += 60){
-    //             bd.rect(windx - 25, i, 20, 30);
-    //             bd.rect(windx + 10, i, 20, 30);    
-    //         }
-    //     } else {
-    //         let windx = this.wid / 3; 
-    //         bd.fill(255); 
-    //         bd.noStroke(); 
-    //         for(let i = this.y - 400; i < this.hei; i += 60){
-    //             bd.rect(windx - 20, i, 15, 25);
-    //             bd.rect(windx + 7, i, 15, 25);
-    //             bd.rect(windx + 35, i, 15, 25);
-    //         }
-    //     }
-    // }
-
     build(){
 
-        let bd = createGraphics(this.wid, this.hei); 
+        this.bd.background(this.color);  
+        // bd.erase(); // Code for making damage
+        // bd.noStroke(); 
+        // bd.circle(3, 30, 30); 
 
-        bd.background(this.color); 
-        
-
-
-
-        // for(let i = 0; i < bd.pixels.length; i++){
-        //     push(); 
-        //     colorMode(RGB); 
-        //     bd.pixels[i] = 0; 
-        //     pop(); 
-        // }
         if(this.color == 0){
 
             let markedChance = round(random(0, 100)); 
@@ -333,29 +373,33 @@ class Building{
 
             if(this.wid <= 80){
                 let windx = this.wid / 2; 
-                bd.fill(255); 
-                bd.noStroke(); 
+                this.bd.fill(255); 
+                this.bd.noStroke(); 
                 for(let i = this.y - 400; i < this.hei; i += 60){
-                    bd.rect(windx - 25, i, 20, 30);
-                    bd.rect(windx + 10, i, 20, 30);    
+                    this.bd.rect(windx - 25, i, 20, 30);
+                    this.bd.rect(windx + 10, i, 20, 30);    
                 }
+
             } else {
                 let windx = this.wid / 3; 
-                bd.fill(255); 
-                bd.noStroke(); 
+                this.bd.fill(255); 
+                this.bd.noStroke(); 
                 for(let i = this.y - 400; i < this.hei; i += 60){
-                    bd.rect(windx - 20, i, 15, 25);
-                    bd.rect(windx + 7, i, 15, 25);
-                    bd.rect(windx + 35, i, 15, 25);
+                    this.bd.rect(windx - 20, i, 15, 25);
+                    this.bd.rect(windx + 7, i, 15, 25);
+                    this.bd.rect(windx + 35, i, 15, 25);
                 }
             }
+
+            this.decay(); 
         }
+        
         
 
         if(!bg_completed){
-            bg_buildings_coords.push(bd);
+            bg_buildings_coords.push(this.bd);
         } else {
-            buildings_coords.push(bd); 
+            buildings_coords.push(this.bd); 
         }
                  
     }
@@ -365,28 +409,42 @@ class Building{
         if(this.landMarked){
             push(); 
             strokeWeight(0.4); 
-            fill(199, 126, 24);
-            arc(this.x + 50, this.y, 40, 10, PI, TWO_PI);
+            if(pingup){
+                ping += 0.05; 
+                if(ping >= 70){
+                    pingup = !pingup; 
+                }
+            } else if(!pingup){
+                ping -= 0.05; 
+                if(ping <= 40){
+                    pingup = !pingup; 
+                }
+            }
+            fill(199, 126, ping);
+            
+            if(ping >= 55){
+                arc(this.x + 40, this.y, 40, 10, PI, TWO_PI);
+            }
             pop();
         }
     }
-
-
 }
 
 class Sub{
     constructor(x, y){
         this.x = x; 
         this.y = y; 
+        this.bx = this.x; 
+        this.dir = 0.2;
 
     }
 
-    dive(){
-        rotate(radians(45)); 
-    }
+    bubbles(){
+        push(); 
+        scale(0.01); 
 
-    surface(){
-
+        image(bub, this.bx, this.y); 
+        pop(); 
     }
 
     update(){
@@ -394,39 +452,53 @@ class Sub{
         translate(this.x, this.y);  
 
         if(right){
-            scale(0.2, 0.2);
+            scale(this.dir, 0.2);
+            if(this.dir < 0.2){
+                this.dir += 0.005; 
+                this.turned = false; 
+            }
+            
         }
 
         if(left){
-            scale(-0.2, 0.2);
+            scale(this.dir, 0.2);
+            if(this.dir > -0.2){
+                this.dir -= 0.005; 
+            } 
         }
          
-        image(sub, 0, 0); 
-        pop();
+        image(sub, 0, 0);  
+        pop(); 
     }
-
-    scan(){
-
-    }
-
+    
 
 }
 
 function keyReleased(){
+    if(playingAmb == false){
+        amb.loop(); 
+        playingAmb = true; 
+    }
     if(key == "d"){
-        // control.x += speed; 
-        // if(speed > 1){
-        //     speed *= 0.7; 
-        // }
+        eng.stop(); 
+        playingEng = false; 
         speed = 1; 
     }
 
     if(key == "a"){
-        // control.x -= speed;
-        // if(speed > 1){
-        //     speed *= 0.7; 
-        // }
+        eng.stop(); 
+        playingEng = false; 
         speed = 1; 
+    }
+
+    if(key == "w"){
+        eng.stop(); 
+        playingEng = false; 
+    }
+
+    if(key =="s"){
+        eng.stop(); 
+        playingEng = false; 
     }
 }
 
