@@ -8,9 +8,14 @@ let startingDecay = 100;
 
 let landmarks = 0; 
 let signalSpeed = 1; 
+let moved = false; 
+let insCol = 255; 
 
 let startSceneHeight = 20; 
 let startScene = true; 
+let wave1; 
+
+let nybg; 
 
 let sub; 
 let bub; 
@@ -41,6 +46,10 @@ function preload(){
     eng = loadSound("./assets/engine.mp3"); 
     son = loadSound("./assets/sonar.mp3");
     lib = loadImage("./assets/lib.png"); 
+    nybg = loadImage("./assets/nycbg.png");
+    apt1 = loadImage("./assets/apt1.png"); 
+    apt2 = loadImage("./assets/apt2.png"); 
+    apt2 = loadImage("./assets/apt3.png"); 
 }
 
 function setup(){
@@ -72,8 +81,12 @@ function setup(){
         bg_builds_incr = round(random(90, 100));
     }
 
-    control = new Sub(50, 20); 
+    control = new Sub(50, 10); 
     
+}
+
+function controls(){
+    rect(0, 0, 0, 0); 
 }
 
 function draw(){
@@ -81,18 +94,35 @@ function draw(){
     if(numScans < landmarks){
         background(215, 38, 50); 
         
+        push(); 
+        colorMode(RGB); 
+        noStroke(); 
+        fill(168, 191, 230); 
+        rect(0, 0, 3600, 55); 
+        
+        fill(255); 
+        rect(0, 55, 3600, 10); 
+        pop(); 
+        
     } else{
         background(208, 50, 50);
         image(lib, 250, -175); 
+        push(); 
+        scale(0.3); 
+        image(nybg, 0, 75); 
+        pop(); 
         
     }
     
     fill(0); 
     rect(0, 400, 3600, 250); // 650 - 250 (Ground), then (650-250) - createGrahpics Height
 
-    for(let i = 0; i < bg_buildings.length; ++i){
-        bg_buildings[i].update(bg_buildings_coords[i]); 
+    if(numScans < landmarks){
+        for(let i = 0; i < bg_buildings.length; ++i){
+            bg_buildings[i].update(bg_buildings_coords[i]); 
+        }
     }
+    
 
     for(let i = 0; i < buildings.length; ++i){
         buildings[i].update(buildings_coords[i]);
@@ -108,15 +138,16 @@ function draw(){
         if((control.x >= (width - 200) || numScans >= 5)){
 
             if(buildings[buildings.length - 1].x > control.x){
-                for(let i = 0; i < bg_buildings.length; ++i){
+                if(numScans < landmarks){
+                    for(let i = 0; i < bg_buildings.length; ++i){
         
-                    bg_buildings[i].x -= 5; 
-                    
-                    bg_buildings[i].update(bg_buildings_coords[i]); 
-                    
-                    
+                        bg_buildings[i].x -= 5; 
+                        
+                        bg_buildings[i].update(bg_buildings_coords[i]); 
+                        
+                    }
                 }
-    
+                
                 for(let i = 0; i < buildings.length; ++i){
                     buildings[i].x -= 5; 
                     buildings[i].update(buildings_coords[i]);
@@ -146,12 +177,14 @@ function draw(){
         if((control.x < (0 + 200) || numScans >= 5)){
 
             if(buildings[0].x < control.x){
-                for(let i = 0; i < bg_buildings.length; ++i){
-                    bg_buildings[i].x += 5;
-                    
-                    bg_buildings[i].update(bg_buildings_coords[i]); 
+                if(numScans < landmarks){
+                    for(let i = 0; i < bg_buildings.length; ++i){
+                        bg_buildings[i].x += 5;
+                        
+                        bg_buildings[i].update(bg_buildings_coords[i]); 
+                    }
                 }
-    
+                
                 for(let i = 0; i < buildings.length; ++i){
                     buildings[i].x += 5; 
                     buildings[i].update(buildings_coords[i]);
@@ -208,6 +241,26 @@ function draw(){
     rotate(radians(45)); 
     rect(950, -450, 550, 300); 
     pop(); 
+
+    if(moved == false){
+        push(); 
+        fill(insCol); //168, 191, 230
+        if(insCol <= 255){
+            insCol -= 5; 
+        }
+
+        if(insCol == 5){
+            insCol = 255;
+        }
+        textSize(12); 
+        translate(-200, -450); 
+        text("W", 500, 475);
+        text("S", 500, 500);
+        text("A", 475, 500);
+        text("D", 525, 500);
+        text("Tap Sub Structure with control to ping and return to base.", 550, 475);
+        pop(); 
+    }
 
     if(numScans >= 5){
         for(let i = 0; i < buildings.length; ++i){
@@ -392,10 +445,9 @@ class Building{
             }
 
             this.decay(); 
+
         }
         
-        
-
         if(!bg_completed){
             bg_buildings_coords.push(this.bd);
         } else {
@@ -470,11 +522,23 @@ class Sub{
         image(sub, 0, 0);  
         pop(); 
     }
-    
 
+    return(){
+        if(right){
+            if(mouseX > this.x && mouseX < this.x + 200 && mouseY > this.y && mouseY < this.y + 60){
+                window.location.href = "../index.html";
+            }
+        } else if(left){
+            if(mouseX < this.x && mouseX > this.x - 200 && mouseY > this.y && mouseY < this.y + 60){
+                window.location.href = "../index.html";
+            }
+        }
+    }
+    
 }
 
 function keyReleased(){
+    moved = true; 
     if(playingAmb == false){
         amb.loop(); 
         playingAmb = true; 
@@ -506,4 +570,6 @@ function mousePressed(){
     for(let i = 0; i < buildings.length; ++i){
         buildings[i].scanning(i); 
     }
+
+    control.return(); 
 }
