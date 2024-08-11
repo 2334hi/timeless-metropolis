@@ -1,11 +1,14 @@
+// NYC City File
+
+// Building Coordinate Storages
 let bg_buildings = []; 
 let bg_buildings_coords = []; 
 let bg_completed = false; 
-
 let buildings = []; 
 let buildings_coords = [];
-let startingDecay = 100; 
+let startingDecay = 100; // Initial "Starting" lvls, with 100 being least decay to 1 being most decay
 
+// Important landmark signals & count
 let landmarks = 0; 
 let signalSpeed = 1; 
 let moved = false; 
@@ -13,10 +16,10 @@ let insCol = 255;
 
 let startSceneHeight = 20; 
 let startScene = true; 
-let wave1; 
 
-let nybg; 
+let nybg; // Final City Background
 
+// Submarine Variables & Coordinates Store
 let sub; 
 let bub; 
 let bubbleSpeed = 5; 
@@ -31,6 +34,7 @@ let lib;
 let playingEng = false; 
 let playingAmb = false; 
 
+// Scanning Info
 let scanSuccess = false; 
 let numScans = 0; 
 let numb = 255; 
@@ -39,7 +43,7 @@ let ping = 40;
 let pingup = true; 
 let pingdown = false; 
 
-function preload(){
+function preload(){ // Loading all external image assets
     sub = loadImage("./assets/sub.png"); 
     bub = loadImage("./assets/bubbles.png");
     amb = loadSound("./assets/amb.mp3");
@@ -57,7 +61,7 @@ function setup(){
     cnv.parent("canvas-parent");
     colorMode(HSL); 
 
-    let bg_builds_incr = round(random(45, 75)); 
+    let bg_builds_incr = round(random(45, 75)); // Background Buildings
     for(let i = 0; i < 3600; i += bg_builds_incr){ // 3600 = Max Width of Map Area Dimension
         let widths = round(random(70, 90)); 
         let heights = round(random(150, 300)); 
@@ -67,9 +71,9 @@ function setup(){
         bg_builds_incr = round(random(45, 75)); 
     }
 
-    bg_completed = true; 
+    bg_completed = true; // Determines that overall scene can begin processing
 
-    for(let i = 0; i < 3600; i += bg_builds_incr){
+    for(let i = 0; i < 3600; i += bg_builds_incr){ // Norm. Builds
         let widths = round(random(70, 90)); 
         let heights = round(random(150, 300));
         let newbd = new Building(i, widths, heights, startingDecay, 0); 
@@ -81,17 +85,13 @@ function setup(){
         bg_builds_incr = round(random(90, 100));
     }
 
-    control = new Sub(50, 10); 
+    control = new Sub(50, 10); // Declares the sub object
     
-}
-
-function controls(){
-    rect(0, 0, 0, 0); 
 }
 
 function draw(){
 
-    if(numScans < landmarks){
+    if(numScans < landmarks){ // When image not fully completed, build basic background
         background(215, 38, 50); 
         
         push(); 
@@ -104,7 +104,7 @@ function draw(){
         rect(0, 55, 3600, 10); 
         pop(); 
         
-    } else{
+    } else{ // Loads icons & Colors
         background(208, 50, 50);
         image(lib, 250, -175); 
         push(); 
@@ -117,26 +117,33 @@ function draw(){
     fill(0); 
     rect(0, 400, 3600, 250); // 650 - 250 (Ground), then (650-250) - createGrahpics Height
 
+    // Building Coordinate Updaters
     if(numScans < landmarks){
         for(let i = 0; i < bg_buildings.length; ++i){
             bg_buildings[i].update(bg_buildings_coords[i]); 
         }
     }
     
-
     for(let i = 0; i < buildings.length; ++i){
         buildings[i].update(buildings_coords[i]);
     }
 
-    if(keyIsDown(68)){
-        if(!playingEng){
+    // Sub Controls to vary the location of the buildings
+    // Map only begins to move once the sub has reached one end
+    // or the other to "push" the scene forward. 
+    if(keyIsDown(68)){ // Right
+
+        if(!playingEng){ // Should play only when sub moving
             eng.play(); 
             playingEng = true; 
         }
+
+        // Declared and Swapped between for 
+        // sub turning purposes
         right = true; 
         left = false; 
         if((control.x >= (width - 200) || numScans >= 5)){
-
+            // Building Coordinate Updaters
             if(buildings[buildings.length - 1].x > control.x){
                 if(numScans < landmarks){
                     for(let i = 0; i < bg_buildings.length; ++i){
@@ -154,7 +161,7 @@ function draw(){
                 }
             }
 
-        } else {
+        } else { // Speed Control, allows sub to slowly speed up (More realistic)
             if(control.x < 1200){
                 control.x += speed; 
                 if(speed < 5){
@@ -166,7 +173,7 @@ function draw(){
         
     }
 
-    if(keyIsDown(65)){
+    if(keyIsDown(65)){ // Left
         if(!playingEng){
             eng.play(); 
             playingEng = true; 
@@ -204,7 +211,7 @@ function draw(){
         
     }
 
-    if(keyIsDown(87)){
+    if(keyIsDown(87)){ // Up
         if(!playingEng){
             eng.play(); 
             playingEng = true; 
@@ -214,7 +221,7 @@ function draw(){
         }
     }
 
-    if(keyIsDown(83)){
+    if(keyIsDown(83)){  // Down
         if(!playingEng){
             eng.play(); 
             playingEng = true; 
@@ -224,10 +231,11 @@ function draw(){
         }
     }
 
-    if(numScans < 5){
+    if(numScans < 5){ // Keep displaying the sub if not fully explored
         control.update(); 
     }
 
+    // Frontal HUD Details
     push();
     fill(255); 
     translate(0, height-200); 
@@ -242,7 +250,7 @@ function draw(){
     rect(950, -450, 550, 300); 
     pop(); 
 
-    if(moved == false){
+    if(moved == false){ // Instructions to briefly display
         push(); 
         fill(insCol); //168, 191, 230
         if(insCol <= 255){
@@ -262,7 +270,8 @@ function draw(){
         pop(); 
     }
 
-    if(numScans >= 5){
+    // For Building Full City Image
+    if(numScans >= 5){ 
         for(let i = 0; i < buildings.length; ++i){
             buildings[i].landMarked = true; 
             buildings[i].scanning(i); 
@@ -299,7 +308,7 @@ class Building{
 
     decay(){
         
-        let orgDecay = this.dec; 
+        let orgDecay = this.dec; // Keeps track of the original decay levels set for building
         let decFactor = 0; 
         this.bd.erase(); 
         this.bd.noStroke(); 
@@ -523,6 +532,7 @@ class Sub{
         pop(); 
     }
 
+    // Sub function that returns user back to main map when clicked
     return(){
         if(right){
             if(mouseX > this.x && mouseX < this.x + 200 && mouseY > this.y && mouseY < this.y + 60){
@@ -534,10 +544,9 @@ class Sub{
             }
         }
     }
-    
 }
 
-function keyReleased(){
+function keyReleased(){ // Stops and resets sub speed
     moved = true; 
     if(playingAmb == false){
         amb.loop(); 
@@ -566,6 +575,9 @@ function keyReleased(){
     }
 }
 
+// Two purposes: 
+// - For Scanning 
+// - And for returning to map
 function mousePressed(){
     for(let i = 0; i < buildings.length; ++i){
         buildings[i].scanning(i); 

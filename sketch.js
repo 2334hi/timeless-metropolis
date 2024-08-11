@@ -1,13 +1,6 @@
-// To add--
-// - Water Dive affect 
-// - Seaweed. . .? (Not Priority)
-// - Underwater Rays affect 
-// - Map Coordinate System
-// - Two other cities (Besides NYC)
-// - Images for the Decaying Buildings
-// - Web Page Upgrades
+// Main Map Page
 
-
+// Location Assets
 let map; 
 let textbox; 
 let lon; 
@@ -18,6 +11,7 @@ let displayingPanel = false;
 let signal = 10; 
 let hover; 
 
+// Coordinate Cursor Locations
 let leftHorx1; 
 let leftHory1; 
 let leftHorx2;
@@ -38,32 +32,21 @@ let botVerty1;
 let botVertx2; 
 let botVerty2;
 
-
-
-
-
-
-
-function preload(){
+function preload(){ // Loading all external image assets
     map = loadImage("./assets/WorldMap.PNG");
     textbox = loadImage("./assets/textbox.png");
     lon = loadImage("./assets/Lon.png"); 
     ny = loadImage("./assets/NYC.png");
     bang = loadImage("./assets/Bang.png"); 
     hover = loadSound("./assets/hover.mp3"); 
-
 }
 
-function setup(){
+function setup(){ // Setting up the canvas
     let cnv = createCanvas(1000, 550); 
     cnv.parent("canvas-parent");
-
-    
-    
-
 }
 
-function coordsys(){
+function coordsys(){ // What coordinates the user's mouse input along the map
     push(); 
     stroke(255); 
     strokeWeight(2); 
@@ -90,6 +73,7 @@ function coordsys(){
     pop(); 
 }
 
+// City Information Display Function Callers
 function nyc(x, y){
     let pan = new Panel(x, y, ny); 
     pan.display(); 
@@ -105,11 +89,12 @@ function bangkok(x, y){
     pan.display(); 
 }
 
+
 function draw(){
     background(255); 
-    noCursor(); 
+    noCursor(); // Removes Cursor
     
-    image(map, -25, 0);
+    image(map, -25, 0); // Map
 
     // city1 NYC
     push(); 
@@ -137,6 +122,8 @@ function draw(){
     fill(255); 
     stroke(0); 
     rect(845, 300, 10, 10); 
+
+    // Controls the blue signaling ring
     if(signal < 30){
         signal += 0.5; 
     } else{
@@ -145,6 +132,8 @@ function draw(){
     pop(); 
     
     coordsys(); 
+
+    // Following if statements determine if hovering over a location
     if((mouseX > 225 && mouseX < 235) && (mouseY > 200 && mouseY < 210)){
         if(displayingPanel == false){
             hover.play(); 
@@ -170,14 +159,15 @@ function draw(){
     
 }
 
+// Currently only NYC completed (Takes you to city location)
 function mousePressed(){
     if((mouseX > 225 && mouseX < 235) && (mouseY > 200 && mouseY < 210)){
         hover.play(); 
         window.location.href = "./New_York/index.html"; 
     }
-    
 }
 
+// Information Panel Class
 class Panel{
     constructor(x, y, img){
         this.x = x; 
@@ -188,17 +178,15 @@ class Panel{
     display(){
         push(); 
 
-        // push(); 
         translate(this.x, this.y); 
-        // Textbox here
         
-        if(displayingPanel && this.img != bang){
+        if(displayingPanel && this.img != bang){ // Brief Info. about the city
             if(disHor < 10){
                 disHor += 2; 
             }
             
             image(textbox, disHor, -175); 
-        } else if(this.img == bang){
+        } else if(this.img == bang){ // A pic of the city
             if(disHor > -80){
                 disHor -= 2;
             }
@@ -210,6 +198,7 @@ class Panel{
         scale(0.2); 
         image(this.img, -disHor - 800, 100); 
 
+        // Displays info depending on what's called
         if(this.img == ny){
             fill(255); 
             textSize(75); 
@@ -235,9 +224,6 @@ class Panel{
             text("can still be felt even after all ", disHor - 200, -350);
             text("these years. ", disHor - 200, -250);
         }
-
         pop(); 
     }
-
-
 }
